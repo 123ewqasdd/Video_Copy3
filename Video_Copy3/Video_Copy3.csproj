@@ -118,6 +118,10 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Helper_INI.cs" />
+    <Compile Include="Helper_log.cs" />
+    <Compile Include="Helper_Redis.cs" />
+    <Compile Include="Helper_Txt.cs" />
     <Compile Include="Model1.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
