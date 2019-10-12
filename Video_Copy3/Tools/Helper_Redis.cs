@@ -13,14 +13,21 @@ namespace Video_Copy3
         private static ConnectionMultiplexer redis = null;
         private static bool connected = false;
         private IDatabase db = null;
-        private int current = 0;
+        private static int current = 0;
+        public static string R_IP = "localhost";
+        public static string R_Port = "6380";
+        public static string R_PWD = "Chaochao";
+        public static bool R_AbortConnect = false;
+        private static string R_connect = "{0}:{1},password={2},abortConnect = {3}";
+      
+
         public static bool IsConnected { get { Open(); return redis.IsConnected; } }
         public static bool Test()
         {
             bool r = true;
             try
             {
-                Helper_Redis.Using(rs => { rs.Use(0); });
+                Helper_Redis.Using(rs => { rs.Use(current); });
             }
             catch (Exception e)
             {
@@ -33,7 +40,8 @@ namespace Video_Copy3
         private static int Open()
         {
             if (connected) return 1;
-            redis = ConnectionMultiplexer.Connect("localhost:6379,password=123456,abortConnect = false");
+            string str_connect = string.Format(R_connect, R_IP, R_Port, R_PWD, R_AbortConnect.ToString().ToLower());
+            redis = ConnectionMultiplexer.Connect(str_connect);
             connected = true;
             return 1;
         }
@@ -44,8 +52,11 @@ namespace Video_Copy3
                 a(red);
             }
         }
-        public Helper_Redis Use(int i)
+        public Helper_Redis Use(string ip,string port ,string pwd, int i)
         {
+            R_IP = ip;
+            R_Port = port;
+            R_PWD = pwd;
             Open();
             current = i;
             db = redis.GetDatabase(i);
@@ -54,6 +65,10 @@ namespace Video_Copy3
             var t = db.Ping();
             //Log.Logs($"RedisDB Select {i}, Ping.{t.TotalMilliseconds}ms");
             return this;
+        }
+        public Helper_Redis Use(int i)
+        {
+            return Use(R_IP, R_Port, R_PWD, i);
         }
 
         public void Set(string key, string val, TimeSpan? ts = null)
@@ -108,11 +123,23 @@ namespace Video_Copy3
         /// <param name="channel"></param>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public long RedisPub<T>(string channel, string msg)
+        public long RedisPub(string channel, string msg)
         {
             return redis.GetSubscriber().Publish(channel, msg);
             //return redis.GetSubscriber().Publish(channel, msg.Json());
         }
+
+        ///// <summary>
+        ///// 发布
+        ///// </summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="channel"></param>
+        ///// <param name="msg"></param>
+        ///// <returns></returns>
+        //public long RedisPub<T>(string channel, string msg)
+        //{            
+        //    return redis.GetSubscriber().Publish(channel, msg.Json());
+        //}
 
         /// <summary>
         /// 取消订阅
